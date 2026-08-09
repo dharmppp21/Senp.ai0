@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "contract": "sync-v2",
+  "scenarios": [
+    {
+      "id": "same_video_self",
+      "setup": "The same observable video is supplied as source and reference.",
+      "expectedInvariants": ["TIMESTAMP_FIRST", "IDENTITY_NOT_REFUSED_WHEN_OBSERVABLE", "NO_FORCED_UNMATCHED"]
+    },
+    {
+      "id": "different_fps",
+      "setup": "Equivalent motion is encoded with different input and analysis frame rates.",
+      "expectedInvariants": ["TIMESTAMP_FIRST", "FPS_LENGTH_INDEPENDENT", "LOCAL_WARP_ALLOWED"]
+    },
+    {
+      "id": "different_resolution",
+      "setup": "Equivalent motion is encoded at different image resolutions.",
+      "expectedInvariants": ["SPATIAL_NUISANCE_CANONICALIZED", "FORM_DIFFERENCE_PRESERVED"]
+    },
+    {
+      "id": "different_codec",
+      "setup": "Equivalent motion is encoded with different codecs while timestamps remain valid.",
+      "expectedInvariants": ["TIMESTAMP_FIRST", "TRANSPORT_METADATA_NOT_CORRESPONDENCE"]
+    },
+    {
+      "id": "rotation_metadata",
+      "setup": "Equivalent motion differs by display or camera rotation.",
+      "expectedInvariants": ["SPATIAL_NUISANCE_CANONICALIZED", "SPATIAL_DIAGNOSTICS_EXPLICIT"]
+    },
+    {
+      "id": "yaw_elevation_viewpoint",
+      "setup": "Cameras observe the motion from materially different yaw and elevation.",
+      "expectedInvariants": ["VIEW_HYPOTHESIS_EXPLICIT", "SPATIAL_RELIABILITY_EXPLICIT", "FORM_DIFFERENCE_PRESERVED"]
+    },
+    {
+      "id": "mirror",
+      "setup": "One recording is mirrored relative to the other.",
+      "expectedInvariants": ["MIRROR_HYPOTHESIS_EXPLICIT", "AMBIGUITY_NOT_SILENT"]
+    },
+    {
+      "id": "side_selection_stability",
+      "setup": "Visibility alternates between body sides across time.",
+      "expectedInvariants": ["SIDE_STABILITY_EXPLICIT", "AMBIGUITY_NOT_SILENT"]
+    },
+    {
+      "id": "camera_movement_discontinuity",
+      "setup": "The camera moves abruptly or changes viewpoint within the clip.",
+      "expectedInvariants": ["SPATIAL_DISCONTINUITY_EXPLICIT", "NO_CONFIDENT_MAPPING_ACROSS_UNRELIABLE_GAP"]
+    },
+    {
+      "id": "start_mid_motion",
+      "setup": "The source begins after a motion unit has already started.",
+      "expectedInvariants": ["OPEN_BOUNDARY_ALLOWED", "PARTIAL_UNIT_ALLOWED", "SUBSEQUENCE_ALLOWED"]
+    },
+    {
+      "id": "end_mid_motion",
+      "setup": "The source ends before a motion unit has completed.",
+      "expectedInvariants": ["OPEN_BOUNDARY_ALLOWED", "PARTIAL_UNIT_ALLOWED", "SUBSEQUENCE_ALLOWED"]
+    },
+    {
+      "id": "one_reference_ten_source",
+      "setup": "One reusable reference motion unit is compared with ten source repetitions.",
+      "expectedInvariants": ["REFERENCE_UNIT_REUSE_ALLOWED", "UNIT_LOCAL_WARP", "NO_EQUAL_REP_COUNT_ASSUMPTION"]
+    },
+    {
+      "id": "ten_reference_one_source",
+      "setup": "Ten reference motion units are available but only one source unit is present.",
+      "expectedInvariants": ["REFERENCE_UNMATCHED_EXPLICIT", "NO_EQUAL_REP_COUNT_ASSUMPTION", "NO_FORCED_PAIR"]
+    },
+    {
+      "id": "two_reference_seven_source",
+      "setup": "Two reference units are available for seven source units.",
+      "expectedInvariants": ["REFERENCE_UNIT_REUSE_ALLOWED", "NO_EQUAL_REP_COUNT_ASSUMPTION", "UNIT_LOCAL_WARP"]
+    },
+    {
+      "id": "multiple_sets_rests",
+      "setup": "Motion occurs in multiple sets separated by idle and rest intervals.",
+      "expectedInvariants": ["REST_SETUP_EXPLICIT", "NO_FORCED_PAIR", "SUBSEQUENCE_ALLOWED"]
+    },
+    {
+      "id": "extra_source_action",
+      "setup": "The source contains an action that is absent from the reference.",
+      "expectedInvariants": ["SOURCE_UNMATCHED_EXPLICIT", "NO_FORCED_PAIR"]
+    },
+    {
+      "id": "missing_source_action",
+      "setup": "The reference contains a step that is absent from the source.",
+      "expectedInvariants": ["REFERENCE_UNMATCHED_EXPLICIT", "NO_FORCED_PAIR"]
+    },
+    {
+      "id": "repeated_identical_phase",
+      "setup": "Several candidate locations have locally similar appearance or phase evidence.",
+      "expectedInvariants": ["AMBIGUITY_NOT_SILENT", "CONFIDENCE_REQUIRED", "NO_FORCED_PAIR"]
+    },
+    {
+      "id": "variable_speed",
+      "setup": "Equivalent units have non-uniform speed changes within the unit.",
+      "expectedInvariants": ["LOCAL_WARP_ALLOWED", "TIMESTAMP_FIRST", "FORM_DIFFERENCE_PRESERVED"]
+    },
+    {
+      "id": "pause_hold",
+      "setup": "A motion unit includes a deliberate pause or hold.",
+      "expectedInvariants": ["HOLD_EXPLICIT", "LOCAL_WARP_ALLOWED", "NO_FORCED_PAIR"]
+    },
+    {
+      "id": "very_slow",
+      "setup": "Equivalent motion is performed much more slowly than the reference.",
+      "expectedInvariants": ["TIMESTAMP_FIRST", "LOCAL_WARP_ALLOWED", "FPS_LENGTH_INDEPENDENT"]
+    },
+    {
+      "id": "very_fast",
+      "setup": "Equivalent motion is performed much faster than the reference.",
+      "expectedInvariants": ["TIMESTAMP_FIRST", "LOCAL_WARP_ALLOWED", "FPS_LENGTH_INDEPENDENT"]
+    },
+    {
+      "id": "static_isometric",
+      "setup": "The activity is substantially static or isometric rather than cyclic.",
+      "expectedInvariants": ["ISOMETRIC_SUPPORTED", "NO_CYCLE_REQUIREMENT", "CONFIDENCE_REQUIRED"]
+    },
+    {
+      "id": "no_common_motion",
+      "setup": "Source and reference contain no defensible common motion.",
+      "expectedInvariants": ["REFUSAL_REQUIRED", "NO_FORCED_PAIR", "NO_FABRICATED_SUCCESS"]
+    },
+    {
+      "id": "poor_pose_coverage",
+      "setup": "Human-pose observations are too sparse or low confidence for reliable synchronization.",
+      "expectedInvariants": ["ANALYZABLE_COVERAGE_EXPLICIT", "REFUSAL_OR_PARTIAL_REQUIRED", "NO_FABRICATED_SUCCESS"]
+    },
+    {
+      "id": "short_occlusion",
+      "setup": "A short interval has missing observation components within an otherwise usable unit.",
+      "expectedInvariants": ["MASKS_EXPLICIT", "SOURCE_TIMESTAMP_UNMATCHED_ALLOWED", "CONFIDENCE_REQUIRED"]
+    },
+    {
+      "id": "long_occlusion",
+      "setup": "A long interval is unobservable within the activity.",
+      "expectedInvariants": ["UNRELIABLE_SEGMENT_EXPLICIT", "NO_CONFIDENT_MAPPING_ACROSS_UNRELIABLE_GAP", "REFUSAL_OR_PARTIAL_REQUIRED"]
+    },
+    {
+      "id": "person_leaves_reenters",
+      "setup": "The primary subject leaves the frame and later returns.",
+      "expectedInvariants": ["DISCONTINUITY_EXPLICIT", "NO_CONFIDENT_MAPPING_ACROSS_UNRELIABLE_GAP", "SUBJECT_IDENTITY_NOT_ASSUMED"]
+    },
+    {
+      "id": "multiple_people_subject_ambiguity",
+      "setup": "More than one plausible subject is visible and identity is ambiguous.",
+      "expectedInvariants": ["SUBJECT_AMBIGUITY_EXPLICIT", "AMBIGUITY_NOT_SILENT", "REFUSAL_OR_PARTIAL_REQUIRED"]
+    },
+    {
+      "id": "different_body_proportions",
+      "setup": "Source and reference subjects have different body proportions.",
+      "expectedInvariants": ["SPATIAL_NUISANCE_CANONICALIZED", "FORM_DIFFERENCE_PRESERVED", "NO_NONRIGID_FORM_ERASURE"]
+    },
+    {
+      "id": "true_form_difference",
+      "setup": "A genuine joint or body-configuration difference exists between source and reference.",
+      "expectedInvariants": ["FORM_DIFFERENCE_PRESERVED", "NO_NONRIGID_FORM_ERASURE", "SPATIAL_TRANSFORM_ONLY_NUISANCE"]
+    },
+    {
+      "id": "reversed_video",
+      "setup": "One clip is temporally reversed relative to the other.",
+      "expectedInvariants": ["NO_FORCED_PAIR", "AMBIGUITY_NOT_SILENT", "REFUSAL_OR_PARTIAL_REQUIRED"]
+    },
+    {
+      "id": "edited_spliced_video",
+      "setup": "A clip contains cuts or splices that break temporal continuity.",
+      "expectedInvariants": ["DISCONTINUITY_EXPLICIT", "NO_CONFIDENT_MAPPING_ACROSS_UNRELIABLE_GAP", "LOCAL_ALIGNMENT_ALLOWED"]
+    },
+    {
+      "id": "slow_motion_edit",
+      "setup": "A clip has been slowed during encoding without changing the underlying motion ordering.",
+      "expectedInvariants": ["TIMESTAMP_FIRST", "LOCAL_WARP_ALLOWED", "TRANSPORT_METADATA_NOT_CORRESPONDENCE"]
+    },
+    {
+      "id": "non_cyclic_activity",
+      "setup": "The shared activity is acyclic and contains ordered non-repeating steps.",
+      "expectedInvariants": ["ACYCLIC_SUPPORTED", "NO_CYCLE_REQUIREMENT", "REFERENCE_UNMATCHED_EXPLICIT"]
+    },
+    {
+      "id": "object_required_pose_only",
+      "setup": "A task adapter declares an object channel required but only human-pose observations are available.",
+      "expectedInvariants": ["REQUIRED_CHANNELS_EXPLICIT", "REFUSAL_REQUIRED", "NO_FABRICATED_SUCCESS"]
+    }
+  ]
+}

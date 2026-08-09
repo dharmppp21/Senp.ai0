@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+APK = ROOT / "validation-app/build/outputs/apk/debug/validation-app-debug.apk"
+PACKAGE = "ai.senp.validation"
+ACTIVITY = f"{PACKAGE}/.ValidationActivity"
+DEVICE_FILES = f"/sdcard/Android/data/{PACKAGE}/files"
+
+
+def run(cmd: list[str], *, timeout: float = 120.0, check: bool = True) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, timeout=timeout, check=False)
+    if check and result.returncode != 0:
+        raise RuntimeError(f"command failed ({result.returncode}): {' '.join(cmd)}\n{result.stdout}\n{result.stderr}")
+    return result
+
+
+def adb(*args: str, timeout: float = 120.0, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return run(["adb", "-e", *args], timeout=timeout, check=check)
+
+
+def ensure_emulator() -> dict[str, str]:
+    state = adb("get-state", timeout=15, check=False)
+    if state.returncode != 0 or state.stdout.strip() != "device":
+        run(["senp-emulator", "start"], timeout=480)
+    deadline = time.monotonic() + 480
+    while time.monotonic() < deadline:
+        state = adb("get-state", timeout=15, check=False)
+        boot = adb("shell", "getprop", "sys.boot_completed", timeout=15, check=False) if state.returncode == 0 else None
+        if state.returncode == 0 and state.stdout.strip() == "device" and boot is not None and boot.stdout.strip() == "1":
+            api = adb("shell", "getprop", "ro.build.version.sdk", timeout=15).stdout.strip()
+            avd_lines = adb("emu", "avd", "name", timeout=15, check=False).stdout.splitlines()
+            avd = next((line.strip() for line in avd_lines if line.strip() and line.strip() != "OK"), "")
+            if api != "35":
+                raise RuntimeError(f"expected API 35 emulator, got API {api}")
+            if avd and avd != "senp_api35":
+                raise RuntimeError(f"expected senp_api35, got {avd}")
+            return {"api": api, "avd": avd or "senp_api35"}
+        time.sleep(2)
+    raise RuntimeError("senp_api35 did not become ready")
+
+
+def ensure_apk() -> None:
+    run(["./gradlew", "--no-daemon", ":validation-app:assembleDebug"], timeout=900)
+    if not APK.is_file():
+        raise RuntimeError(f"validation APK missing after build: {APK}")
+    installed = adb("install", "-r", "-t", str(APK), timeout=240, check=False)
+    if installed.returncode != 0 or "Success" not in installed.stdout:
+        raise RuntimeError(f"APK install failed\n{installed.stdout}\n{installed.stderr}")
+
+
+def remote_exists_with_size(path: str, expected_size: int) -> bool:
+    probe = adb("shell", "stat", "-c", "%s", path, timeout=30, check=False)
+    return probe.returncode == 0 and probe.stdout.strip() == str(expected_size)
+
+
+def stage_video(path: Path, sha256: str) -> str:
+    remote_dir = f"{DEVICE_FILES}/sync-v2-input"
+    remote = f"{remote_dir}/{sha256}.mp4"
+    adb("shell", "mkdir", "-p", remote_dir, timeout=30)
+    if not remote_exists_with_size(remote, path.stat().st_size):
+        pushed = adb("push", str(path), remote, timeout=600, check=False)
+        if pushed.returncode != 0:
+            raise RuntimeError(f"failed to push {path}\n{pushed.stdout}\n{pushed.stderr}")
+    return remote
+
+
+def pull_file(remote: str, local: Path, *, required: bool = True) -> bool:
+    local.parent.mkdir(parents=True, exist_ok=True)
+    pulled = adb("pull", remote, str(local), timeout=240, check=False)
+    ok = pulled.returncode == 0 and local.is_file()
+    if required and not ok:
+        raise RuntimeError(f"failed to pull {remote}\n{pulled.stdout}\n{pulled.stderr}")
+    return ok
+
+
+def run_real_video(descriptor_path: Path, descriptor: dict) -> None:
+    device = ensure_emulator()
+    ensure_apk()
+    case_id = str(descriptor["case_id"])
+    safe_case = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in case_id)[:80] or "case"
+    source = Path(descriptor["source"]["path"]).resolve()
+    reference = Path(descriptor["reference"]["path"]).resolve()
+    source_remote = stage_video(source, str(descriptor["source"]["sha256"]))
+    reference_remote = stage_video(reference, str(descriptor["reference"]["sha256"]))
+    remote_output = f"{DEVICE_FILES}/sync-v2/{safe_case}"
+    adb("shell", "rm", "-rf", remote_output, timeout=30)
+    adb("logcat", "-c", timeout=30, check=False)
+    adb("shell", "am", "force-stop", PACKAGE, timeout=30, check=False)
+    analysis_fps = max(1, min(30, int(round(float(descriptor.get("analysis_fps", 15))))))
+    started = time.monotonic()
+    launch = adb(
+        "shell", "am", "start", "-W", "-n", ACTIVITY,
+        "--es", "mode", "sync_v2",
+        "--es", "source_video", source_remote,
+        "--es", "reference_video", reference_remote,
+        "--es", "label", safe_case,
+        "--ei", "fps", str(analysis_fps),
+        "--ei", "long_edge", "640",
+        timeout=60,
+        check=False,
+    )
+    if launch.returncode != 0 or "Error" in (launch.stdout + launch.stderr):
+        raise RuntimeError(f"activity launch failed\n{launch.stdout}\n{launch.stderr}")
+    deadline = time.monotonic() + 1800
+    while time.monotonic() < deadline:
+        complete = adb("shell", "test", "-f", f"{remote_output}/COMPLETE", timeout=15, check=False)
+        if complete.returncode == 0:
+            break
+        log = adb("logcat", "-d", "-s", "SENP_E2E:E", "*:S", timeout=30, check=False).stdout
+        if "FAILED" in log:
+            raise RuntimeError(f"Sync-v2 Android activity failed\n{log[-12000:]}")
+        time.sleep(2)
+    else:
+        log = adb("logcat", "-d", "-v", "threadtime", timeout=60, check=False).stdout
+        raise RuntimeError(f"Sync-v2 Android activity timed out\n{log[-12000:]}")
+
+    output_dir = descriptor_path.parent
+    required_output = Path(descriptor["required_output"]["path"]).resolve()
+    pull_file(f"{remote_output}/normalized-result.json", required_output)
+    pull_file(f"{remote_output}/synchronization-result.json", output_dir / "synchronization-result.json")
+    pull_file(f"{remote_output}/sync-v2-diagnostics.json", output_dir / "sync-v2-diagnostics.json")
+    pull_file(f"{remote_output}/summary.txt", output_dir / "android-summary.txt")
+    pull_file(f"{remote_output}/source_pose_extraction.json", output_dir / "source_pose_extraction.json")
+    pull_file(f"{remote_output}/reference_pose_extraction.json", output_dir / "reference_pose_extraction.json")
+    pull_file(f"{remote_output}/sync_v2_mapped_pose_contact_sheet.jpg", output_dir / "sync_v2_mapped_pose_contact_sheet.jpg", required=False)
+    logcat = adb("logcat", "-d", "-v", "threadtime", timeout=60, check=False).stdout
+    (output_dir / "android-logcat.txt").write_text(logcat, encoding="utf-8")
+    print(json.dumps({
+        "mode": "real_video",
+        "case_id": case_id,
+        "device": device,
+        "elapsed_ms": round((time.monotonic() - started) * 1000.0, 3),
+        "normalized_result": str(required_output),
+        "android_output": str(output_dir),
+    }, sort_keys=True))
+
+
+def run_post_pose_benchmark(descriptor_path: Path) -> None:
+    cli = ROOT / "sync-v2-validation/build/install/sync-v2-validation/bin/sync-v2-validation"
+    if not cli.is_file():
+        run(["./gradlew", "--no-daemon", ":sync-v2-validation:installDist"], timeout=900)
+    measured = run([str(cli), "benchmark-adapter", str(descriptor_path)], timeout=1200, check=False)
+    if measured.returncode != 0:
+        raise RuntimeError(f"post-pose benchmark failed\n{measured.stdout}\n{measured.stderr}")
+    print(measured.stdout.strip())
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print("usage: sync-v2-validation-adapter <adapter-request.json>", file=sys.stderr)
+        return 2
+    descriptor_path = Path(sys.argv[1]).resolve()
+    descriptor = json.loads(descriptor_path.read_text(encoding="utf-8"))
+    if descriptor.get("protocol") != "senp-sync-v2-validation-adapter/1":
+        raise RuntimeError(f"unsupported adapter protocol: {descriptor.get('protocol')}")
+    mode = descriptor.get("mode")
+    if mode == "real_video":
+        run_real_video(descriptor_path, descriptor)
+        return 0
+    if mode == "post_pose_benchmark":
+        run_post_pose_benchmark(descriptor_path)
+        return 0
+    raise RuntimeError(f"unsupported adapter mode: {mode}")
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        print(f"sync-v2 adapter error: {exc}", file=sys.stderr)
+        raise SystemExit(1)

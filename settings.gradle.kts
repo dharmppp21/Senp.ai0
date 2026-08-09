@@ -23,4 +23,6 @@ include(
     ":android-video",
     ":android-pose-mediapipe",
     ":validation-app",
+    ":sync-v2-integration",
+    ":sync-v2-validation",
 )

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "origin": "renderer_adversarial_smoke_not_sync_output",
+  "case_id": "legraise-wrong-right",
+  "purpose": "Deliberately bad and unmatched pairings used only to prove the human-review artifact makes raised-vs-flat, opposite-state, and forced-match failures obvious. This is not a synchronization result.",
+  "spatial_diagnostics": {
+    "mirror": "UNKNOWN",
+    "selected_side": "UNKNOWN",
+    "relative_yaw_degrees": null,
+    "relative_elevation_degrees": null,
+    "uniform_scale": 1.45,
+    "transform_family": "similarity_only",
+    "review_note": "Large global scale is displayed explicitly; any non-uniform scale or shear supplied by an adapter is flagged as invalid."
+  },
+  "rows": [
+    {
+      "source_ms": 640,
+      "reference_ms": 533,
+      "confidence": 0.95,
+      "source_unit_id": "review-trap-s0",
+      "reference_unit_id": "review-trap-r0",
+      "source_direction": "FLAT",
+      "reference_direction": "RAISED",
+      "source_phase": "LOW",
+      "reference_phase": "HIGH",
+      "source_state": "ACTIVE",
+      "reference_state": "ACTIVE",
+      "reliability": "RELIABLE",
+      "review_expected": "REJECT_RAISED_VS_FLAT"
+    },
+    {
+      "source_ms": 2560,
+      "reference_ms": 5166,
+      "confidence": 0.92,
+      "source_unit_id": "review-trap-s1",
+      "reference_unit_id": "review-trap-r1",
+      "source_direction": "RAISED",
+      "reference_direction": "FLAT",
+      "source_phase": "HIGH",
+      "reference_phase": "LOW",
+      "source_state": "ACTIVE",
+      "reference_state": "ACTIVE",
+      "reliability": "RELIABLE",
+      "review_expected": "REJECT_OPPOSITE_STATE"
+    },
+    {
+      "source_ms": 6320,
+      "reference_ms": 3633,
+      "confidence": 0.88,
+      "source_unit_id": "review-trap-s2",
+      "reference_unit_id": "review-trap-r2",
+      "source_direction": "RAISING",
+      "reference_direction": "LOWERING",
+      "source_phase": "ASCENDING",
+      "reference_phase": "DESCENDING",
+      "source_state": "ACTIVE",
+      "reference_state": "ACTIVE",
+      "reliability": "RELIABLE",
+      "review_expected": "REJECT_OPPOSITE_DIRECTION"
+    },
+    {
+      "source_ms": 8240,
+      "reference_ms": null,
+      "confidence": 0.99,
+      "source_unit_id": "review-trap-s3",
+      "reference_unit_id": null,
+      "source_direction": "FLAT",
+      "reference_direction": "UNMATCHED",
+      "source_phase": "LOW",
+      "reference_phase": "UNMATCHED",
+      "source_state": "COVERAGE_HOLE_BOUNDARY",
+      "reference_state": "UNMATCHED",
+      "reliability": "UNRELIABLE",
+      "review_expected": "KEEP_UNMATCHED"
+    }
+  ]
+}

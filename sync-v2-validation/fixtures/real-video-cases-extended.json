@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "corpus_root": "/home/coder/.local/share/senp-test-videos/drive-14DVra51GZZozAF-4uBwOuk75U0z-QwMO",
+  "corpus_manifest": "/home/coder/.local/share/senp-test-videos/manifests/drive-14DVra51GZZozAF-4uBwOuk75U0z-QwMO.json",
+  "cases": [
+    {
+      "id": "biceps-wrong-right",
+      "source": "Wrong videos/biceps_curl_wrong.mp4",
+      "reference": "Right videos/Biceps_curl_right.mp4",
+      "focus": [
+        "opposite_direction_phase_regression",
+        "mapping_direction_consistency",
+        "unmatched_spans",
+        "spatial_diagnostics"
+      ],
+      "prior_evidence": "Old alignment had visually verified opposite-phase pairings; do not inherit its path as a v2 golden mapping."
+    },
+    {
+      "id": "legraise-wrong-right",
+      "source": "Wrong videos/leg_raise_wrong.mp4",
+      "reference": "Right videos/leg_raise_right.mp4",
+      "focus": [
+        "full_pose_temporal_regression",
+        "raised_vs_flat_visual_check",
+        "mapping_direction_consistency",
+        "spatial_diagnostics"
+      ],
+      "prior_evidence": "Generic full-pose temporal failure target; raw video remains the ground truth surface."
+    },
+    {
+      "id": "pushup-wrong-right",
+      "source": "Wrong videos/pushups_wrong.mp4",
+      "reference": "Right videos/pushups_right.mp4",
+      "focus": [
+        "low_observation_coverage",
+        "truthful_partial_or_refusal",
+        "coverage_diagnostics",
+        "no_forced_success"
+      ],
+      "prior_evidence": "Legacy alignment reported LINEAR_INSUFFICIENT_MOTION with very low aggregate confidence; scoring/problem counts are intentionally ignored.",
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "biceps-right-right-control",
+      "source": "Right videos/Biceps_curl_right.mp4",
+      "reference": "Right videos/Biceps_curl_right.mp4",
+      "focus": [
+        "identity_control",
+        "timestamp_identity_when_analyzable",
+        "no_synthetic_unmatched"
+      ]
+    },
+    {
+      "id": "legraise-right-right-control",
+      "source": "Right videos/leg_raise_right.mp4",
+      "reference": "Right videos/leg_raise_right.mp4",
+      "focus": [
+        "identity_control",
+        "codec_hevc",
+        "timestamp_identity_when_analyzable"
+      ]
+    },
+    {
+      "id": "lat-pullovers-wrong-right",
+      "source": "Wrong videos/lat_pullovers_wrong.mp4",
+      "reference": "Right videos/lat_pullovers_right.mp4",
+      "focus": [
+        "generic_wrong_right",
+        "mapping_direction_consistency",
+        "unmatched_spans",
+        "spatial_diagnostics"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "legraises-alt-wrong-right",
+      "source": "Wrong videos/leg_raises_wrong.mp4",
+      "reference": "Right videos/leg_raises_right.mp4",
+      "focus": [
+        "generic_wrong_right",
+        "mapping_direction_consistency",
+        "unmatched_spans",
+        "spatial_diagnostics"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "plank-wrong-right",
+      "source": "Wrong videos/plank_wrong.mp4",
+      "reference": "Right videos/plank_right.mp4",
+      "focus": [
+        "isometric_or_mixed_motion",
+        "truthful_partial_or_refusal",
+        "unmatched_spans",
+        "spatial_diagnostics"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "pullups-wrong-right",
+      "source": "Wrong videos/pullups_wrong.mp4",
+      "reference": "Right videos/pullups_right.mp4",
+      "focus": [
+        "generic_wrong_right",
+        "mapping_direction_consistency",
+        "unmatched_spans",
+        "spatial_diagnostics"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "side-bridges-wrong-right",
+      "source": "Wrong videos/side_bridges_wrong.mp4",
+      "reference": "Right videos/Side_bridges_right.mp4",
+      "focus": [
+        "generic_wrong_right",
+        "mapping_direction_consistency",
+        "unmatched_spans",
+        "spatial_diagnostics"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "pushup-right-right-control",
+      "source": "Right videos/pushups_right.mp4",
+      "reference": "Right videos/pushups_right.mp4",
+      "focus": [
+        "identity_control",
+        "timestamp_identity_when_analyzable",
+        "no_synthetic_unmatched"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "lat-pullovers-right-right-control",
+      "source": "Right videos/lat_pullovers_right.mp4",
+      "reference": "Right videos/lat_pullovers_right.mp4",
+      "focus": [
+        "identity_control",
+        "timestamp_identity_when_analyzable",
+        "no_synthetic_unmatched"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "legraises-alt-right-right-control",
+      "source": "Right videos/leg_raises_right.mp4",
+      "reference": "Right videos/leg_raises_right.mp4",
+      "focus": [
+        "identity_control",
+        "timestamp_identity_when_analyzable",
+        "no_synthetic_unmatched"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "plank-right-right-control",
+      "source": "Right videos/plank_right.mp4",
+      "reference": "Right videos/plank_right.mp4",
+      "focus": [
+        "identity_control",
+        "isometric_or_mixed_motion",
+        "timestamp_identity_when_analyzable"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "pullups-right-right-control",
+      "source": "Right videos/pullups_right.mp4",
+      "reference": "Right videos/pullups_right.mp4",
+      "focus": [
+        "identity_control",
+        "timestamp_identity_when_analyzable",
+        "no_synthetic_unmatched"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    },
+    {
+      "id": "side-bridges-right-right-control",
+      "source": "Right videos/Side_bridges_right.mp4",
+      "reference": "Right videos/Side_bridges_right.mp4",
+      "focus": [
+        "identity_control",
+        "timestamp_identity_when_analyzable",
+        "no_synthetic_unmatched"
+      ],
+      "minimum_analyzable_fraction_for_synchronized": 0.65
+    }
+  ],
+  "description": "Extended real-video regression matrix: five locked acceptance cases plus every remaining paired exercise and right-right identity control in the immutable 21-video corpus."
+}
